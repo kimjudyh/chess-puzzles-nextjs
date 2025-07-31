@@ -38,6 +38,7 @@ export default function HomePage() {
   const [remainingMovesIndex, setRemainingMovesIndex] = useState<number>(0);
   const [solution, setSolution] = useState<string[]>([]); // Store the moves for the puzzle
   const [isPuzzleComplete, setIsPuzzleComplete] = useState(false);
+  const [isIncorrectMove, setIsIncorrectMove] = useState<true | false>(false);
 
   const chessGameRef = useRef(new Chess());
   const chessGame = chessGameRef.current;
@@ -172,12 +173,15 @@ export default function HomePage() {
       if (moveFrom === solution[remainingMovesIndex]?.slice(0, 2) 
         && square === solution[remainingMovesIndex]?.slice(2, 4)) {
         // If the correct move is made, increment the remaining moves index
+        setIsIncorrectMove(false);
         const newIndex = remainingMovesIndex + 1;
         setRemainingMovesIndex(newIndex);
         checkPuzzleComplete(newIndex);
         setTimeout(() => moveOpponentPiece(newIndex), 500)
         // update the position state
         setChessPosition(chessGame.fen());
+      } else {
+        setIsIncorrectMove(true);
       }
 
       // clear moveFrom and optionSquares
@@ -221,10 +225,13 @@ export default function HomePage() {
       if (sourceSquare === solution[remainingMovesIndex]?.slice(0, 2) 
         && targetSquare === solution[remainingMovesIndex]?.slice(2, 4)) {
         // If the correct move is made, increment the remaining moves index
+        setIsIncorrectMove(false);
         const newIndex = remainingMovesIndex + 1
         checkPuzzleComplete(newIndex);
         setTimeout(() => moveOpponentPiece(newIndex), 500)
         setRemainingMovesIndex(newIndex);
+      } else {
+        setIsIncorrectMove(true);
       }
       // update the position state upon successful move to trigger a re-render of the chessboard
       setChessPosition(chessGame.fen());
@@ -244,8 +251,16 @@ export default function HomePage() {
     }
   }
 
+  // Add this new function to handle retrying after an incorrect move
+  const handleRetry = () => {
+    chessGame.undo(); // Undo the last move
+    setChessPosition(chessGame.fen());
+    setIsIncorrectMove(false);
+  };
+
   const loadPuzzle = () => {
     setIsPuzzleComplete(false); // Reset puzzle completion state
+    setIsIncorrectMove(false); // Reset incorrect move state
     const filteredPuzzles = lichessPuzzles.filter(p => {
       const rating = parseInt(p.Rating);
       if (difficulty === 'easy') {
@@ -353,6 +368,19 @@ export default function HomePage() {
           <p className="text-green-700 font-bold">
             Puzzle completed successfully! 🎉
           </p>
+        </div>
+      )}
+      {isIncorrectMove && (
+        <div className="mt-4 p-4 bg-red-100 border border-red-500 rounded-lg">
+          <p className="text-red-700 font-bold">
+            Incorrect move! Try again.
+          </p>
+          <button
+            className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            onClick={handleRetry}
+          >
+            Retry Move
+          </button>
         </div>
       )}
       {puzzle && (

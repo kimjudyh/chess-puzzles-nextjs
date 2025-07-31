@@ -6,6 +6,7 @@ import { Chessboard, SquareHandlerArgs, PieceDropHandlerArgs, } from 'react-ches
 import lichessPuzzles from '../data/lichessPuzzles'
 
 
+// ChatGPT generated puzzles
 const puzzles = [
   {
     id: 1,
@@ -34,6 +35,8 @@ export default function HomePage() {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [puzzle, setPuzzle] = useState<typeof lichessPuzzles[0] | null>(null);
   const [hint, setHint] = useState('');
+  const [remainingMovesIndex, setRemainingMovesIndex] = useState<number>(0);
+  const [solution, setSolution] = useState<string[]>([]); // Store the moves for the puzzle
 
   const chessGameRef = useRef(new Chess());
   const chessGame = chessGameRef.current;
@@ -43,6 +46,8 @@ export default function HomePage() {
   const [chessPosition, setChessPosition] = useState(chessGame.fen());
   const [moveFrom, setMoveFrom] = useState('');
   const [optionSquares, setOptionSquares] = useState({});
+
+  const [boardOrientation, setBoardOrientation] = useState<'white' | 'black'>('white');
 
   // const [chessboardOptions, setChessboardOptions] = useState({position: chessPosition})
 
@@ -85,6 +90,32 @@ export default function HomePage() {
 
     // return true to indicate that there are move options
     return true;
+  }
+
+  function moveOpponentPiece(index: number) {
+    // Automatically move the opponent's piece
+    console.log("Remaining Moves:", solution, remainingMovesIndex);
+    if (index < solution.length) {
+      const opponentMove = solution[index]; // Get the opponent's move
+      if (opponentMove) {
+        chessGame.move({
+          from: opponentMove.slice(0, 2),
+          to: opponentMove.slice(2, 4),
+          promotion: opponentMove.length === 5 ? opponentMove[4] as 'q' | 'r' | 'b' | 'n' : undefined
+        });
+        // setChessPosition(chessGame.fen());
+        setRemainingMovesIndex(index + 1); // Update the remaining moves
+        // puzzle?.Moves = moves.join(' '); // Update the remaining moves
+
+        // Highlight the opponent's move
+        const newSquares: Record<string, React.CSSProperties> = {
+          [opponentMove.slice(0, 2)]: { background: 'rgba(255, 213, 0, 0.4)' }, // Highlight the source square
+          [opponentMove.slice(2, 4)]: { background: 'rgba(0, 255, 0, 0.4)' }  // Highlight the target square
+        };
+        setOptionSquares(newSquares); // Update the square styles
+        setChessPosition(chessGame.fen());
+      }
+    }
   }
 
   function onSquareClick({
@@ -131,6 +162,22 @@ export default function HomePage() {
         to: square,
         promotion: 'q'
       });
+      if (moveFrom === solution[remainingMovesIndex]?.slice(0, 2) 
+        && square === solution[remainingMovesIndex]?.slice(2, 4)) {
+        // If the correct move is made, increment the remaining moves index
+        const newIndex = remainingMovesIndex + 1;
+        setRemainingMovesIndex(newIndex);
+        setTimeout(() => moveOpponentPiece(newIndex), 500)
+        // update the position state
+        setChessPosition(chessGame.fen());
+      }
+
+      // clear moveFrom and optionSquares
+      setMoveFrom('');
+      setOptionSquares({});
+
+      setChessPosition(chessGame.fen());
+      return true
     } catch {
       // if invalid, setMoveFrom and getMoveOptions
       const hasMoveOptions = getMoveOptions(square as Square);
@@ -151,6 +198,8 @@ export default function HomePage() {
     // clear moveFrom and optionSquares
     setMoveFrom('');
     setOptionSquares({});
+
+    return true
   }
 
   // handle piece drop
@@ -171,6 +220,13 @@ export default function HomePage() {
         promotion: 'q' // always promote to a queen for example simplicity
       });
 
+      if (sourceSquare === solution[remainingMovesIndex]?.slice(0, 2) 
+        && targetSquare === solution[remainingMovesIndex]?.slice(2, 4)) {
+        // If the correct move is made, increment the remaining moves index
+        const newIndex = remainingMovesIndex + 1
+        setTimeout(() => moveOpponentPiece(newIndex), 500)
+        setRemainingMovesIndex(newIndex);
+      }
       // update the position state upon successful move to trigger a re-render of the chessboard
       setChessPosition(chessGame.fen());
 
@@ -178,6 +234,8 @@ export default function HomePage() {
       setMoveFrom('');
       setOptionSquares({});
 
+
+      setChessPosition(chessGame.fen());
 
       // return true as the move was successful
       return true;
@@ -209,10 +267,38 @@ export default function HomePage() {
     const randomPuzzle = filteredPuzzles[Math.floor(Math.random() * filteredPuzzles.length)];
 
     setPuzzle(randomPuzzle);
+    const moves = randomPuzzle.Moves.split(' ');
+    setSolution(moves)
+
     try {
+      setRemainingMovesIndex(0); // Reset remaining moves index
       chessGame.load(randomPuzzle.FEN);
       setChessPosition(chessGame.fen());
+      // Set up the first move
+      const firstMove = moves[0]
+      // Determine player's color based on the first move
+      if (firstMove) {
+        const playerIsWhite = randomPuzzle.FEN.split(' ')[1] === 'b'; // If FEN indicates black to move, player is white
+        setBoardOrientation(playerIsWhite ? 'white' : 'black');
+      }
+
+      chessGame.move({
+        from: firstMove.slice(0, 2),
+        to: firstMove.slice(2, 4),
+        promotion: firstMove.length === 5 ? firstMove[4] as 'q' | 'r' | 'b' | 'n' : undefined
+      });
+
+      // Highlight the opponent's move
+      const newSquares: Record<string, React.CSSProperties> = {
+        [firstMove.slice(0, 2)]: { background: 'rgba(255, 213, 0, 0.4)' }, // Highlight the source square
+        [firstMove.slice(2, 4)]: { background: 'rgba(0, 255, 0, 0.4)' }  // Highlight the target square
+      };
+      setOptionSquares(newSquares); // Update the square styles
+
       console.log(randomPuzzle)
+      console.log(remainingMovesIndex)
+      setRemainingMovesIndex(1); // Update remaining moves after the first move
+      setChessPosition(chessGame.fen());
     } catch (e) {
       console.warn("Invalid FEN. Loading default board.");
       chessGame.reset();
@@ -222,14 +308,9 @@ export default function HomePage() {
   };
 
   const getHint = () => {
-    console.log("current puzzle", puzzle)
-    if (puzzle?.Moves) {
-      const moves = puzzle.Moves.split(' ');
-      if (moves.length > 0) {
-        setHint(`Try moving ${moves[0]}`);
-      } else {
-        setHint('No hints available.');
-      }
+    console.log("current puzzle", puzzle, solution, remainingMovesIndex)
+    if (remainingMovesIndex < solution.length) {
+      setHint(`Try moving ${solution[remainingMovesIndex]}.`);
     } else {
       setHint('No hints available.');
     }
@@ -240,7 +321,8 @@ export default function HomePage() {
     onSquareClick,
     position: chessPosition,
     squareStyles: optionSquares,
-    id: 'click-or-drag-to-move'
+    id: 'click-or-drag-to-move',
+    boardOrientation
   };
 
   return (
@@ -271,6 +353,9 @@ export default function HomePage() {
           <Chessboard
             options={chessboardOptions}
           />
+          <div>
+            {boardOrientation.toUpperCase()} to move
+          </div>
           <button
             className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded"
             onClick={getHint}

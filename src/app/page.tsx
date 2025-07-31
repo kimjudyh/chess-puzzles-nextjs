@@ -341,65 +341,79 @@ export default function HomePage() {
   return (
     <main className="p-4 max-w-screen-md mx-auto">
       <h1 className="text-2xl font-bold mb-2">Chess Puzzle Trainer</h1>
-      <div className="mb-2">
-        <label className="mr-2">Select difficulty:</label>
-        {(['easy', 'medium', 'hard'] as Difficulty[]).map(level => (
-          <button
-            key={level}
-            className={`mr-2 px-3 py-1 rounded ${
-              difficulty === level ? 'bg-blue-500 text-white' : 'bg-gray-200'
-            }`}
-            onClick={() => setDifficulty(level)}
-          >
-            {level}
-          </button>
-        ))}
-        <button
-          className="mb-2 px-4 py-2 bg-green-500 text-white rounded"
-          onClick={loadPuzzle}
-        >
-          Load Puzzle
-        </button>
-      </div>
-      {isPuzzleComplete && (
-        <div className="mt-2 p-4 bg-green-100 border border-green-500 rounded-lg">
-          <p className="text-green-700 font-bold">
-            Puzzle completed successfully! 🎉
-          </p>
-        </div>
-      )}
-      {isIncorrectMove && (
-        <div className="mt-4 p-4 bg-red-100 border border-red-500 rounded-lg">
-          <p className="text-red-700 font-bold">
-            Incorrect move! Try again.
-          </p>
-          <button
-            className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-            onClick={handleRetry}
-          >
-            Retry Move
-          </button>
-        </div>
-      )}
-      {puzzle && (
-        <>
-          <div className="flex items-center space-x-4 mt-2 mb-4">
+      
+      {/* Game Controls Section - Fixed Height */}
+      <div className="h-24 mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <label>Select difficulty:</label>
+          {(['easy', 'medium', 'hard'] as Difficulty[]).map(level => (
             <button
-              className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded"
+              key={level}
+              className={`px-3 py-1 rounded ${
+                difficulty === level ? 'bg-blue-500 text-white' : 'bg-gray-200'
+              }`}
+              onClick={() => setDifficulty(level)}
+            >
+              {level}
+            </button>
+          ))}
+          <button
+            className="px-4 py-2 bg-green-500 text-white rounded"
+            onClick={loadPuzzle}
+          >
+            Load Puzzle
+          </button>
+          {puzzle && (
+            <button
+              className="px-4 py-2 bg-yellow-500 text-white rounded"
               onClick={getHint}
             >
               Get Hint
             </button>
-            {hint && <p className="mt-2 text-lg font-semibold">Hint: {hint}</p>}
-          </div>
-          <Chessboard
-            options={chessboardOptions}
-          />
-          <div>
-            {boardOrientation.toUpperCase()} to move
-          </div>
-        </>
-      )}
+          )}
+        </div>
+
+        {/* Messages Container - Fixed Height */}
+        <div className="h-12">
+          {isPuzzleComplete && (
+            <div className="bg-green-100 border border-green-500 rounded-lg p-2">
+              <p className="text-green-700 font-bold">
+                Puzzle completed successfully! 🎉
+              </p>
+            </div>
+          )}
+          {isIncorrectMove && (
+            <div className="flex items-center gap-2 bg-red-100 border border-red-500 rounded-lg p-2">
+              <p className="text-red-700 font-bold">
+                Incorrect move!
+              </p>
+              <button
+                className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                onClick={handleRetry}
+              >
+                Retry Move
+              </button>
+            </div>
+          )}
+          {hint && (
+            <div className="text-gray-700 font-semibold">
+              Hint: {hint}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Chess Board Section */}
+      <div className="relative">
+        {puzzle && (
+          <>
+            <Chessboard options={chessboardOptions} />
+            <div className="mt-2 text-sm text-gray-600">
+              {boardOrientation.toUpperCase()} to move
+            </div>
+          </>
+        )}
+      </div>
     </main>
   );
 }

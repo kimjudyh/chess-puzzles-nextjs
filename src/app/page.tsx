@@ -37,19 +37,16 @@ export default function HomePage() {
   const [hint, setHint] = useState('');
   const [remainingMovesIndex, setRemainingMovesIndex] = useState<number>(0);
   const [solution, setSolution] = useState<string[]>([]); // Store the moves for the puzzle
+  const [isPuzzleComplete, setIsPuzzleComplete] = useState(false);
 
   const chessGameRef = useRef(new Chess());
   const chessGame = chessGameRef.current;
-  // const [chess, setChess] = useState(new Chess());
 
   // track the current position of the chess game in state to trigger a re-render of the chessboard
   const [chessPosition, setChessPosition] = useState(chessGame.fen());
   const [moveFrom, setMoveFrom] = useState('');
   const [optionSquares, setOptionSquares] = useState({});
-
   const [boardOrientation, setBoardOrientation] = useState<'white' | 'black'>('white');
-
-  // const [chessboardOptions, setChessboardOptions] = useState({position: chessPosition})
 
 
   // get the move options for a square to show valid moves
@@ -92,6 +89,13 @@ export default function HomePage() {
     return true;
   }
 
+  const checkPuzzleComplete = (index: number) => {
+    // Check if we've completed all solution moves
+    if (index >= solution.length) {
+      setIsPuzzleComplete(true);
+    }
+  }
+
   function moveOpponentPiece(index: number) {
     // Automatically move the opponent's piece
     console.log("Remaining Moves:", solution, remainingMovesIndex);
@@ -114,6 +118,9 @@ export default function HomePage() {
         };
         setOptionSquares(newSquares); // Update the square styles
         setChessPosition(chessGame.fen());
+
+        // Check if puzzle is complete after opponent's move
+        checkPuzzleComplete(index + 1);
       }
     }
   }
@@ -167,6 +174,7 @@ export default function HomePage() {
         // If the correct move is made, increment the remaining moves index
         const newIndex = remainingMovesIndex + 1;
         setRemainingMovesIndex(newIndex);
+        checkPuzzleComplete(newIndex);
         setTimeout(() => moveOpponentPiece(newIndex), 500)
         // update the position state
         setChessPosition(chessGame.fen());
@@ -190,16 +198,6 @@ export default function HomePage() {
       // return early
       return;
     }
-
-    // update the position state
-    setChessPosition(chessGame.fen());
-
-
-    // clear moveFrom and optionSquares
-    setMoveFrom('');
-    setOptionSquares({});
-
-    return true
   }
 
   // handle piece drop
@@ -224,6 +222,7 @@ export default function HomePage() {
         && targetSquare === solution[remainingMovesIndex]?.slice(2, 4)) {
         // If the correct move is made, increment the remaining moves index
         const newIndex = remainingMovesIndex + 1
+        checkPuzzleComplete(newIndex);
         setTimeout(() => moveOpponentPiece(newIndex), 500)
         setRemainingMovesIndex(newIndex);
       }
@@ -246,6 +245,7 @@ export default function HomePage() {
   }
 
   const loadPuzzle = () => {
+    setIsPuzzleComplete(false); // Reset puzzle completion state
     const filteredPuzzles = lichessPuzzles.filter(p => {
       const rating = parseInt(p.Rating);
       if (difficulty === 'easy') {
@@ -327,7 +327,7 @@ export default function HomePage() {
 
   return (
     <main className="p-4 max-w-screen-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Chess Puzzle Trainer</h1>
+      <h1 className="text-2xl font-bold mb-2">Chess Puzzle Trainer</h1>
       <div className="mb-2">
         <label className="mr-2">Select difficulty:</label>
         {(['easy', 'medium', 'hard'] as Difficulty[]).map(level => (
@@ -341,28 +341,37 @@ export default function HomePage() {
             {level}
           </button>
         ))}
+        <button
+          className="mb-2 px-4 py-2 bg-green-500 text-white rounded"
+          onClick={loadPuzzle}
+        >
+          Load Puzzle
+        </button>
       </div>
-      <button
-        className="mb-4 px-4 py-2 bg-green-500 text-white rounded"
-        onClick={loadPuzzle}
-      >
-        Load Puzzle
-      </button>
+      {isPuzzleComplete && (
+        <div className="mt-2 p-4 bg-green-100 border border-green-500 rounded-lg">
+          <p className="text-green-700 font-bold">
+            Puzzle completed successfully! 🎉
+          </p>
+        </div>
+      )}
       {puzzle && (
         <>
+          <div className="flex items-center space-x-4 mt-2 mb-4">
+            <button
+              className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded"
+              onClick={getHint}
+            >
+              Get Hint
+            </button>
+            {hint && <p className="mt-2 text-lg font-semibold">Hint: {hint}</p>}
+          </div>
           <Chessboard
             options={chessboardOptions}
           />
           <div>
             {boardOrientation.toUpperCase()} to move
           </div>
-          <button
-            className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded"
-            onClick={getHint}
-          >
-            Get Hint
-          </button>
-          {hint && <p className="mt-2 text-lg font-semibold">Hint: {hint}</p>}
         </>
       )}
     </main>

@@ -49,7 +49,6 @@ export default function HomePage() {
   const [optionSquares, setOptionSquares] = useState({});
   const [boardOrientation, setBoardOrientation] = useState<'white' | 'black'>('white');
 
-
   // get the move options for a square to show valid moves
   function getMoveOptions(square: Square) {
     // get the moves for the square
@@ -108,9 +107,7 @@ export default function HomePage() {
           to: opponentMove.slice(2, 4),
           promotion: opponentMove.length === 5 ? opponentMove[4] as 'q' | 'r' | 'b' | 'n' : undefined
         });
-        // setChessPosition(chessGame.fen());
         setRemainingMovesIndex(index + 1); // Update the remaining moves
-        // puzzle?.Moves = moves.join(' '); // Update the remaining moves
 
         // Highlight the opponent's move
         const newSquares: Record<string, React.CSSProperties> = {
@@ -293,7 +290,8 @@ export default function HomePage() {
       const firstMove = moves[0]
       // Determine player's color based on the first move
       if (firstMove) {
-        const playerIsWhite = randomPuzzle.FEN.split(' ')[1] === 'b'; // If FEN indicates black to move, player is white
+        // If FEN indicates black to move, player is white
+        const playerIsWhite = randomPuzzle.FEN.split(' ')[1] === 'b'; 
         setBoardOrientation(playerIsWhite ? 'white' : 'black');
       }
 

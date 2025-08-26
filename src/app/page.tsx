@@ -376,14 +376,14 @@ export default function HomePage() {
         {/* Messages Container - Fixed Height */}
         <div className="h-16">
           {isPuzzleComplete && (
-            <div className="bg-green-100 border border-green-500 rounded-lg p-2">
+            <div className="w-[calc(80vh-70px)] bg-green-100 border border-green-500 rounded-lg p-2">
               <p className="text-green-700 font-bold">
                 Puzzle completed successfully! 🎉
               </p>
             </div>
           )}
           {isIncorrectMove && (
-            <div className="flex items-center gap-2 bg-red-100 border border-red-500 rounded-lg p-2">
+            <div className="w-[calc(80vh-70px)] flex items-center gap-2 bg-red-100 border border-red-500 rounded-lg p-2">
               <p className="text-red-700 font-bold">
                 Incorrect move!
               </p>
@@ -407,8 +407,17 @@ export default function HomePage() {
       <div className="relative">
         {puzzle && (
           <>
-            <div className="mt-2 text-sm text-white-700">
-              {boardOrientation.toUpperCase()} to move
+            <div className="w-[calc(80vh-70px)] my-2 flex items-center gap-2 bg-white-100 border border-white-500 rounded-lg p-2">
+              <div className="text-sm text-white-700 flex items-center gap-2">
+                {/* Add colored box */}
+                <div 
+                  className={`w-4 h-4 border border-gray-300 ${
+                    boardOrientation === 'white' ? 'bg-white' : 'bg-black'
+                  }`}
+                />
+                {/* Capitalize first letter only */}
+                {boardOrientation.charAt(0).toUpperCase() + boardOrientation.slice(1)} to move
+              </div>
             </div>
             <div className="w-[calc(80vh-70px)]">
               <Chessboard options={chessboardOptions} />

@@ -335,7 +335,7 @@ export default function HomePage() {
     position: chessPosition,
     squareStyles: optionSquares,
     id: 'click-or-drag-to-move',
-    boardOrientation
+    boardOrientation,
   };
 
   return (
@@ -343,14 +343,14 @@ export default function HomePage() {
       <h1 className="text-2xl font-bold mb-2">Chess Puzzle Trainer</h1>
       
       {/* Game Controls Section - Fixed Height */}
-      <div className="h-24 mb-4">
+      <div className="h-28 mb-4">
         <div className="flex items-center gap-2 mb-2">
           <label>Select difficulty:</label>
           {(['easy', 'medium', 'hard'] as Difficulty[]).map(level => (
             <button
               key={level}
               className={`px-3 py-1 rounded ${
-                difficulty === level ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                difficulty === level ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
               }`}
               onClick={() => setDifficulty(level)}
             >
@@ -358,14 +358,14 @@ export default function HomePage() {
             </button>
           ))}
           <button
-            className="px-4 py-2 bg-green-500 text-white rounded"
+            className="px-3 py-1 bg-green-500 text-white rounded"
             onClick={loadPuzzle}
           >
             Load Puzzle
           </button>
           {puzzle && (
             <button
-              className="px-4 py-2 bg-yellow-500 text-white rounded"
+              className="px-3 py-1 bg-yellow-500 text-white rounded"
               onClick={getHint}
             >
               Get Hint
@@ -374,7 +374,7 @@ export default function HomePage() {
         </div>
 
         {/* Messages Container - Fixed Height */}
-        <div className="h-12">
+        <div className="h-16">
           {isPuzzleComplete && (
             <div className="bg-green-100 border border-green-500 rounded-lg p-2">
               <p className="text-green-700 font-bold">
@@ -396,7 +396,7 @@ export default function HomePage() {
             </div>
           )}
           {hint && (
-            <div className="text-gray-700 font-semibold">
+            <div className="text-white-700 font-semibold">
               Hint: {hint}
             </div>
           )}
@@ -407,9 +407,11 @@ export default function HomePage() {
       <div className="relative">
         {puzzle && (
           <>
-            <Chessboard options={chessboardOptions} />
-            <div className="mt-2 text-sm text-gray-600">
+            <div className="mt-2 text-sm text-white-700">
               {boardOrientation.toUpperCase()} to move
+            </div>
+            <div className="w-[calc(80vh-70px)]">
+              <Chessboard options={chessboardOptions} />
             </div>
           </>
         )}

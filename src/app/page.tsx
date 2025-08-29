@@ -323,9 +323,26 @@ export default function HomePage() {
   const getHint = () => {
     console.log("current puzzle", puzzle, solution, remainingMovesIndex)
     if (remainingMovesIndex < solution.length) {
-      setHint(`Try moving ${solution[remainingMovesIndex]}.`);
+      const nextMove = solution[remainingMovesIndex];
+      const sourceSquare = nextMove.slice(0, 2);
+      
+      // Set blue highlight for the piece to move
+      const newSquares: Record<string, React.CSSProperties> = {
+        [sourceSquare]: { 
+          background: 'rgba(0, 0, 255, 0.3)' // Blue highlight
+        }
+      };
+      setOptionSquares(newSquares);
+      
+      // Get the piece type for more informative hint
+      const piece = chessGame.get(sourceSquare as Square);
+      const pieceName = piece ? piece.type.toUpperCase() : '';
+      
+      // setHint(`Try moving the ${pieceName} from ${sourceSquare}`);
+      setHint(`Try moving ${solution[remainingMovesIndex]}`);
     } else {
       setHint('No hints available.');
+      setOptionSquares({});
     }
   };
 
